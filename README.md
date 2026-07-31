@@ -128,3 +128,7 @@ src-tauri\target\release\bundle\nsis\Scissor_*_x64-setup.exe
 - 系统托盘常驻
 - 代码签名（Authenticode）后的智能屏幕提示更友好
 - Wayland 下基于 `xdg-desktop-portal` 的截屏/输入
+
+## License
+
+本项目采用 [MIT License](./LICENSE)。
