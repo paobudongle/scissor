@@ -2,7 +2,8 @@
 name = "scissor"
 version = "0.1.0"
 description = "A lightweight screenshot tool built with Tauri"
-authors = ["you"]
+authors = ["paobudongle"]
+license = "MIT"
 edition = "2021"
 
 # 独立于上级 rustproject workspace
