@@ -1,0 +1,38 @@
+[package]
+name = "scissor"
+version = "0.1.0"
+description = "A lightweight screenshot tool built with Tauri"
+authors = ["you"]
+edition = "2021"
+
+# 独立于上级 rustproject workspace
+[workspace]
+
+[lib]
+name = "scissor_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+# custom-protocol：发行版嵌入前端；protocol-asset：用本地截图文件作为选区底图
+tauri = { version = "2", features = ["custom-protocol", "protocol-asset", "image-png"] }
+tauri-plugin-opener = "2"
+tauri-plugin-global-shortcut = "2"
+tauri-plugin-dialog = "2"
+tauri-plugin-single-instance = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+xcap = "0.0.14"
+image = { version = "0.25", default-features = false, features = ["png", "jpeg"] }
+# wayland-data-control：纯 Wayland 下走 data-control 协议，避免仅依赖 XWayland 剪贴板
+arboard = { version = "3", features = ["wayland-data-control"] }
+base64 = "0.22"
+chrono = "0.4"
+dirs = "6"
+parking_lot = "0.12"
+
+# Windows 自动滚动（模拟滚轮）；Linux 仍用 xdotool
+[target.'cfg(windows)'.dependencies]
+enigo = "0.3"
