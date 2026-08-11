@@ -376,6 +376,25 @@ async fn confirm_region_capture(
     Ok(result)
 }
 
+/// 裁剪当前覆盖层选区并返回 PNG base64（不关闭覆盖层）。
+/// 供前端标注合成：asset/file 协议底图会污染 canvas，不能直接 toDataURL。
+#[tauri::command]
+fn crop_overlay_region(
+    state: State<'_, Arc<AppState>>,
+    region: Region,
+    monitor_id: u32,
+) -> Result<String, String> {
+    let png_path = state
+        .overlay_sessions
+        .lock()
+        .get(&monitor_id)
+        .map(|s| s.png_path.clone())
+        .ok_or_else(|| format!("没有显示器 {monitor_id} 的截图会话"))?;
+    let screen = capture::load_png(Path::new(&png_path))?;
+    let cropped = capture::crop_image(&screen, &region)?;
+    capture::encode_png_base64(&cropped)
+}
+
 /// 前端完成标注后提交最终 PNG（base64，无 data: 前缀）。
 #[tauri::command]
 async fn confirm_annotated_capture(
@@ -717,6 +736,7 @@ pub fn run() {
             begin_region_capture,
             begin_scroll_capture,
             confirm_region_capture,
+            crop_overlay_region,
             confirm_annotated_capture,
             confirm_scroll_capture,
             scroll_capture_next_frame,

@@ -730,30 +730,36 @@ export function initOverlay() {
     updateHint();
   });
 
+  function loadImageFromDataUrl(dataUrl: string): Promise<HTMLImageElement> {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = () => reject(new Error("选区底图解码失败"));
+      img.src = dataUrl;
+    });
+  }
+
   async function buildAnnotatedPng(): Promise<string> {
     commitTextEditor();
     const region = scaleRegion();
     const { scaleX, scaleY } = scaleFactors();
+
+    // 不能直接用 screenEl（asset/file 跨源）drawImage 后再 toDataURL，会触发
+    // SecurityError: The operation is insecure（不安全操作）。
+    // 改为后端裁剪选区，以 data URL 加载后再叠标注。
+    const regionBase64 = await invoke<string>("crop_overlay_region", {
+      region,
+      monitorId,
+    });
+    const baseImg = await loadImageFromDataUrl(`data:image/png;base64,${regionBase64}`);
+
     const canvas = document.createElement("canvas");
     canvas.width = region.width;
     canvas.height = region.height;
     const ctx = canvas.getContext("2d");
     if (!ctx) throw new Error("无法创建画布");
 
-    // 从已加载底图裁剪
-    const sx = region.x;
-    const sy = region.y;
-    ctx.drawImage(
-      screenEl,
-      sx,
-      sy,
-      region.width,
-      region.height,
-      0,
-      0,
-      region.width,
-      region.height,
-    );
+    ctx.drawImage(baseImg, 0, 0, region.width, region.height);
 
     // 标注：选区内 CSS 坐标 → 图像像素
     for (const anno of annotations) {
